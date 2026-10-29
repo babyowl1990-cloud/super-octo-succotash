@@ -1,0 +1,74 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>AutoFix Spelling</title>
+<style>
+  :root{color-scheme:dark}
+  body{margin:0;width:340px;background:#14161c;color:#e8eaf0;font:13px/1.4 system-ui,-apple-system,Segoe UI,sans-serif}
+  header{padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between}
+  h1{font-size:15px;margin:0}
+  .sub{color:#8b92a5;font-size:11px}
+  .stats{display:flex;gap:8px;padding:0 16px 12px}
+  .stat{flex:1;background:#1b1e27;border-radius:10px;padding:8px 10px}
+  .stat b{display:block;font-size:18px;color:#6ee7a0}
+  .row{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-top:1px solid #232733}
+  .row small{display:block;color:#8b92a5;font-size:11px}
+  input[type=checkbox]{appearance:none;width:34px;height:20px;border-radius:20px;background:#343a4d;position:relative;cursor:pointer;transition:.15s;flex:none}
+  input[type=checkbox]::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#e8eaf0;transition:.15s}
+  input[type=checkbox]:checked{background:#2fbf71}
+  input[type=checkbox]:checked::after{left:16px}
+  .blk{padding:10px 16px 12px;border-top:1px solid #232733}
+  .blk h2{font-size:12px;margin:0 0 4px;color:#c8ccd8}
+  textarea{width:100%;box-sizing:border-box;height:78px;margin-top:6px;background:#0e1015;color:#e8eaf0;border:1px solid #2b2f3a;border-radius:8px;padding:8px;font:12px ui-monospace,Menlo,Consolas,monospace;resize:vertical}
+  button{background:#232733;color:#e8eaf0;border:0;border-radius:8px;padding:7px 12px;font:inherit;cursor:pointer}
+  button:hover{background:#343a4d}
+  button.full{width:100%}
+  .ok{color:#6ee7a0;font-size:11px;margin-left:8px}
+  input[type=password],input[type=text],select{width:100%;box-sizing:border-box;background:#0e1015;color:#e8eaf0;border:1px solid #2b2f3a;border-radius:8px;padding:7px 9px;font:12px ui-monospace,Menlo,Consolas,monospace;margin-top:6px}
+  .btns{display:flex;gap:6px;margin-top:8px}.btns button{flex:1;padding:7px 6px}
+  .msg{font-size:11px;margin-top:6px;color:#8b92a5;min-height:14px}.msg.bad{color:#ff9b9b}.msg.good{color:#6ee7a0}
+  .top{margin:6px 0 0;padding:0;list-style:none;font-size:12px;color:#c8ccd8}
+  .top li{display:flex;justify-content:space-between;padding:2px 0}
+  .top span:last-child{color:#8b92a5}
+  kbd{background:#232733;border-radius:4px;padding:1px 5px;font:11px ui-monospace,monospace}
+</style></head>
+<body>
+<header><div><h1>AutoFix Spelling</h1><div class="sub">Offline · <kbd>Backspace</kbd> right after a fix to undo</div></div><input type="checkbox" id="enabled" title="Master switch"></header>
+<div class="stats"><div class="stat"><b id="sToday">0</b>fixes today</div><div class="stat"><b id="sTotal">0</b>all time</div></div>
+
+<div class="row"><div>Auto-fix spelling<small>Replace confident typos as you type</small></div><input type="checkbox" id="autoFix"></div>
+<div class="row"><div>Auto-fix grammar<small>its/it's, a/an, could of, more then…</small></div><input type="checkbox" id="grammarFix"></div>
+<div class="row"><div>Capitalize sentences<small>First word after . ! ? or a new line</small></div><input type="checkbox" id="capSentence"></div>
+<div class="row"><div>Capitalize “i”<small>i → I · im → I'm · dont → don't</small></div><input type="checkbox" id="capI"></div>
+<div class="row"><div>Squiggles + click to fix<small>Red spelling · blue grammar · purple style</small></div><input type="checkbox" id="underline"></div>
+<div class="row"><div>…on every field on the page<small>Not just the one you're typing in</small></div><input type="checkbox" id="underlineAll"></div>
+<div class="row"><div>Suggestion bar<small>Alt+1/2/3 picks when unsure</small></div><input type="checkbox" id="suggest"></div>
+<div class="row"><div>Style hints<small>Wordy phrases: “in order to” → “to”</small></div><input type="checkbox" id="style"></div>
+<div class="row"><div>Collapse double spaces</div><input type="checkbox" id="doubleSpace"></div>
+<div class="row"><div>Smart punctuation<small>-- → — · ... → …</small></div><input type="checkbox" id="smartPunct"></div>
+
+<div class="blk"><button class="full" id="fixnow">Fix everything in the last field I used</button><div class="sub" style="margin-top:6px">or press <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd> inside any text field</div><div class="ok" id="fixmsg" style="margin:4px 0 0"></div></div>
+<div class="blk"><button class="full" id="site">…</button></div>
+
+<div class="blk"><h2>✨ AI rewrite <span class="sub">optional · bring any API key</span></h2>
+  <div class="row" style="padding:6px 0 2px;border:0"><div>Enable AI rewrite<small>Alt+Shift+R rewrites your selection, or the sentence at your caret</small></div><input type="checkbox" id="rewriteEnabled"></div>
+  <select id="provider"></select>
+  <input type="text" id="url" spellcheck="false" placeholder="Server URL, e.g. https://my-server/v1">
+  <input type="password" id="apiKey" autocomplete="off" spellcheck="false" placeholder="Paste your API key">
+  <div class="msg" id="keyState"></div>
+  <input type="text" id="model" spellcheck="false" placeholder="Model name">
+  <div class="btns"><button id="saveKey">Save</button><button id="testKey">Test</button><button id="removeKey">Remove key</button></div>
+  <select id="tone"><option value="clearer">Default style: Clearer</option><option value="shorter">Default style: Shorter</option><option value="friendlier">Default style: Friendlier</option><option value="formal">Default style: More formal</option><option value="fix">Default style: Fix grammar only</option></select>
+  <div class="sub" id="provNote" style="margin-top:8px"></div>
+  <div class="sub" style="margin-top:6px">Keys stay on this device (not synced) and are only used by the extension's background worker — web pages never see them. Text goes to the provider you pick only when you press the shortcut or click ✨ Rewrite. Usage is billed by that provider. Model names change often: if Test says “not found”, type the current model name.</div>
+</div>
+
+<div class="blk"><h2>Snippets <span class="sub">trigger => text · {date} {time} {iso} · \n for new line · fires on space</span></h2><textarea id="snippets" spellcheck="false"></textarea>
+<div style="margin-top:8px"><button id="saveSn">Save snippets</button><span class="ok" id="okSn"></span></div></div>
+
+<div class="blk"><h2>My dictionary <span class="sub">(one word per line)</span></h2><textarea id="custom" spellcheck="false"></textarea>
+<div style="margin-top:8px"><button id="save">Save words</button><span class="ok" id="ok"></span></div></div>
+
+<div class="blk"><h2>Your most-fixed typos</h2><ul class="top" id="top"><li><span>Nothing yet — start typing!</span></li></ul><button id="reset" style="margin-top:8px">Reset stats</button></div>
+<script src="shared.js"></script>
+<script src="providers.js"></script>
+<script src="popup.js"></script>
+</body></html>
